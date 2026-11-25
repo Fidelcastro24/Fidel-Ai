@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111a33">
+<meta name="description" content="Fidel AI — your assistant, created by Fidel Castro Bor.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<title>Fidel AI</title>
+<style>
+:root{color-scheme:dark;--bg:#080d1a;--panel:#111a30;--panel2:#172442;--line:#29385e;--text:#f3f6ff;--muted:#aab7d5;--blue:#7895ff;--purple:#9b83ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#26396a 0,#0b1225 42%,var(--bg) 80%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button,input,textarea{font:inherit}button{cursor:pointer}
+.app{max-width:900px;margin:auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 2px 18px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:43px;height:43px;border-radius:14px;background:linear-gradient(135deg,#678cff,#9b70ff);display:grid;place-items:center;font-size:24px;box-shadow:0 8px 30px #627eff44}
+.brand h1{font-size:20px;margin:0;letter-spacing:-.4px}.brand small{color:var(--muted)}
+.head-actions{display:flex;gap:8px}.ghost,.install{border:1px solid var(--line);background:#172442;color:var(--text);border-radius:12px;padding:9px 12px}
+.hero{text-align:center;padding:24px 14px 20px;border:1px solid #708bdf35;background:linear-gradient(130deg,#24365b77,#35295b44);border-radius:24px;margin-bottom:18px}
+.hero .orb{font-size:42px}.hero h2{font-size:clamp(25px,6vw,36px);margin:4px 0}.hero p{color:var(--muted);margin:0}
+.chat{flex:1;min-height:240px;display:flex;flex-direction:column;gap:13px;padding:8px 0 18px}
+.welcome{margin:auto;text-align:center;color:var(--muted);max-width:440px;padding:25px 8px}.welcome strong{color:var(--text)}
+.msg{max-width:88%;padding:13px 15px;border:1px solid var(--line);border-radius:18px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,#293d77,#30305f);border-bottom-right-radius:5px}
+.msg.bot{align-self:flex-start;background:#111a30;border-bottom-left-radius:5px}
+.msg .who{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9eafff;margin-bottom:5px}
+.msg img{max-width:100%;max-height:260px;border-radius:12px;margin-top:8px}
+.typing{color:var(--muted);font-size:14px;padding:8px}
+.composer{position:sticky;bottom:0;background:linear-gradient(transparent,#080d1a 18%);padding-top:12px}
+.attachments{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.tool{border:1px solid var(--line);background:#111a30;color:#dce5ff;border-radius:11px;padding:8px 11px;font-size:13px}
+.tool input{display:none}
+.entry{display:flex;gap:8px;align-items:flex-end;background:#111a30;border:1px solid #3a4d7b;border-radius:18px;padding:8px;box-shadow:0 10px 35px #0005}
+textarea{flex:1;resize:none;min-height:44px;max-height:130px;background:transparent;border:0;outline:0;color:var(--text);padding:10px 7px}
+.send{width:46px;height:46px;border:0;border-radius:14px;background:linear-gradient(135deg,#668bff,#9b75ff);color:white;font-size:20px}
+.status{text-align:center;color:#8291b6;font-size:11px;padding:9px}
+.settings{display:none;background:#111a30;border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+.settings.open{display:block}.settings label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}
+.settings input,.settings textarea{width:100%;background:#0b1327;border:1px solid var(--line);border-radius:10px;padding:10px;color:white}
+.settings textarea{min-height:65px}
+.memrow{display:flex;gap:8px}.memrow button{white-space:nowrap}
+.error{color:#ffb7b7}.tiny{font-size:12px;color:var(--muted)}
+@media(min-width:700px){.app{padding-top:22px}.hero{padding:28px}.chat{padding:14px 8px}.msg{max-width:78%}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div class="brand"><div class="logo">✦</div><div><h1>Fidel AI</h1><small>Created by Fidel Castro Bor</small></div></div>
+ <div class="head-actions"><button class="ghost" id="newChat" title="New chat">＋</button><button class="ghost" id="settingsBtn" title="Settings">⚙</button></div>
+</header>
+<section class="hero"><div class="orb">🤖</div><h2>What can I help you with?</h2><p>Your AI assistant. Ask anything, share a picture, or talk by voice.</p></section>
+<section class="settings" id="settings">
+ <strong>Personal memory</strong><p class="tiny">Memories stay in this browser on this device. Do not save passwords or sensitive information.</p>
+ <label for="memory">Add a memory for future chats</label>
+ <div class="memrow"><input id="memory" placeholder="I prefer simple explanations…"><button class="tool" id="saveMemory">Save</button></div>
+ <div id="memoryList" class="tiny" style="margin-top:8px"></div>
+ <p class="tiny">The Gemini API key is configured by the app owner on the server, not entered into this page.</p>
+</section>
+<main class="chat" id="chat"><div class="welcome"><strong>Welcome to Fidel AI.</strong><br>Start a conversation below. Your recent chat stays in this browser.</div></main>
+<div class="composer">
+ <div class="attachments">
+  <label class="tool">🖼️ Image <input id="image" type="file" accept="image/*"></label>
+  <button class="tool" id="mic">🎙️ Voice</button>
+  <button class="tool" id="speak" disabled>🔊 Read last answer</button>
+  <button class="tool" id="stopSpeak">■ Stop</button>
+ </div>
+ <div class="entry"><textarea id="message" rows="1" placeholder="Message Fidel AI…"></textarea><button class="send" id="send" aria-label="Send">➤</button></div>
+ <div class="status" id="status">Fidel AI · Ready when you are</div>
+</div>
+</div>
+<script>
+const chat=document.getElementById('chat'), input=document.getElementById('message'), statusEl=document.getElementById('status');
+const imageInput=document.getElementById('image');
+let history=JSON.parse(localStorage.getItem('fidel_history')||'[]');
+let memories=JSON.parse(localStorage.getItem('fidel_memories')||'[]');
+let lastAnswer='';
+function persist(){localStorage.setItem('fidel_history',JSON.stringify(history.slice(-40)));localStorage.setItem('fidel_memories',JSON.stringify(memories));}
+function render(){
+ chat.innerHTML='';
+ if(!history.length){chat.innerHTML='<div class="welcome"><strong>Welcome to Fidel AI.</strong><br>Start a conversation below. Your recent chat stays in this browser.</div>';return;}
+ history.forEach(m=>addBubble(m.role,m.content,false));
+ chat.scrollTop=chat.scrollHeight;
+}
+function addBubble(role,text,scroll=true){
+ const el=document.createElement('div');el.className='msg '+(role==='user'?'user':'bot');
+ const who=document.createElement('div');who.className='who';who.textContent=role==='user'?'You':'Fidel AI';
+ const body=document.createElement('div');body.textContent=text;
+ el.append(who,body);chat.append(el);if(scroll)el.scrollIntoView({behavior:'smooth',block:'end'});return el;
+}
+function updateMemories(){
+ const list=document.getElementById('memoryList');list.innerHTML='';
+ memories.forEach((m,i)=>{const row=document.createElement('div');row.style.marginTop='6px';const t=document.createElement('span');t.textContent='• '+m+' ';const b=document.createElement('button');b.className='tool';b.textContent='Remove';b.onclick=()=>{memories.splice(i,1);persist();updateMemories()};row.append(t,b);list.append(row)});
+}
+function saveMem(){const v=document.getElementById('memory').value.trim();if(!v)return;memories.push(v);document.getElementById('memory').value='';persist();updateMemories();}
+document.getElementById('saveMemory').onclick=saveMem;updateMemories();
+document.getElementById('settingsBtn').onclick=()=>document.getElementById('settings').classList.toggle('open');
+document.getElementById('newChat').onclick=()=>{history=[];lastAnswer='';persist();render();statusEl.textContent='New chat started';document.getElementById('speak').disabled=true;};
+function speak(text){if(!('speechSynthesis'in window)){statusEl.textContent='Speech playback is not supported in this browser';return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);speechSynthesis.speak(u);}
+document.getElementById('speak').onclick=()=>speak(lastAnswer);
+document.getElementById('stopSpeak').onclick=()=>speechSynthesis?.cancel();
+async function send(){
+ const text=input.value.trim(), img=imageInput.files[0];
+ if(!text&&!img)return;
+ const userText=text||(img?'Please examine this image.':'');
+ history.push({role:'user',content:userText});persist();render();
+ input.value='';statusEl.textContent='Fidel AI is thinking…';
+ const typing=addBubble('assistant','Thinking…');
+ const form=new FormData();form.append('message',text);form.append('history',JSON.stringify(history.slice(0,-1)));form.append('memories',JSON.stringify(memories));
+ if(img)form.append('image',img); 
+ try{
+  const res=await fetch('/api/chat',{method:'POST',body:form});const data=await res.json();
+  typing.remove();
+  if(!res.ok)throw new Error(data.error||'Request failed');
+  const answer=data.reply||'No response returned.';history.push({role:'assistant',content:answer});lastAnswer=answer;persist();render();
+  document.getElementById('speak').disabled=false;statusEl.textContent='Fidel AI · Response ready';
+ }catch(e){typing.remove();addBubble('assistant','Sorry — '+e.message);statusEl.textContent='Could not complete request';}
+ imageInput.value='';
+}
+document.getElementById('send').onclick=send;
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,130)+'px';});
+let recorder=null,chunks=[];
+document.getElementById('mic').onclick=async()=>{
+ if(recorder&&recorder.state==='recording'){recorder.stop();return;}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){statusEl.textContent='Voice recording is not supported here. Try Chrome on Android.';return;}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});recorder=new MediaRecorder(stream);chunks=[];
+  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  recorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});statusEl.textContent='Sending voice recording…';
+   const form=new FormData();form.append('message','Please listen to my voice message.');form.append('history',JSON.stringify(history));form.append('memories',JSON.stringify(memories));form.append('audio',blob,'voice.webm');
+   const userText='🎙️ Voice message';history.push({role:'user',content:userText});persist();render();
+   try{const r=await fetch('/api/chat',{method:'POST',body:form});const d=await r.json();if(!r.ok)throw new Error(d.error);history.push({role:'assistant',content:d.reply});lastAnswer=d.reply;persist();render();document.getElementById('speak').disabled=false;statusEl.textContent='Voice response ready';}catch(err){addBubble('assistant','Sorry — '+err.message);statusEl.textContent='Voice request failed';}
+  };
+  recorder.start();statusEl.textContent='Recording… tap 🎙️ Voice again to stop';
+ }catch(e){statusEl.textContent='Microphone permission was not granted';}
+};
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/static/sw.js').catch(()=>{}));
+render();
+</script>
+</body></html>
